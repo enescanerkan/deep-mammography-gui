@@ -12,18 +12,37 @@ import os
 src_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.dirname(src_dir)
 
-if src_dir not in sys.path:
-    sys.path.insert(0, src_dir)
-if project_root not in sys.path:
-    sys.path.insert(0, project_root)
+# In the bundled executable the modules come from the archive; adding the parent of
+# the extraction folder (the user's TEMP) would let any 'utils' or 'gui' there shadow them.
+if not getattr(sys, 'frozen', False):
+    if src_dir not in sys.path:
+        sys.path.insert(0, src_dir)
+    if project_root not in sys.path:
+        sys.path.insert(0, project_root)
+
+ASSETS_DIR = os.path.join(getattr(sys, '_MEIPASS', project_root), 'assets')
+
+# torch must load before PyQt5 on Windows: PyQt5 ships an older MSVC runtime that c10.dll
+# cannot initialize with (WinError 1114)
+import torch  # noqa: F401
 
 from PyQt5.QtWidgets import QApplication, QMessageBox, QProgressDialog
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QFont
+from PyQt5.QtGui import QFont, QIcon
 
 from gui.main_window import MainApplicationWindow
 from utils.logger import setup_logging
 from utils.weights_downloader import WeightsManager
+
+
+def close_splash() -> None:
+    """Close the PyInstaller splash screen, if the executable was built with one."""
+    # pyi_splash logs a traceback when imported without a splash screen to connect to;
+    # the bootloader sets _PYI_SPLASH_IPC only when there is one (the module then removes it)
+    if 'pyi_splash' not in sys.modules and '_PYI_SPLASH_IPC' not in os.environ:
+        return
+    import pyi_splash
+    pyi_splash.close()
 
 
 def check_and_download_weights(app: QApplication) -> bool:
@@ -41,6 +60,9 @@ def check_and_download_weights(app: QApplication) -> bool:
     if weights_manager.all_weights_exist():
         return True
     
+    # The splash stays on top, so it must go before any dialog is shown
+    close_splash()
+
     missing = weights_manager.get_missing_weights()
     missing_names = [w.name for w in missing]
     
@@ -129,12 +151,17 @@ def main():
     font = QFont("Segoe UI", 10)
     app.setFont(font)
 
+    icon_path = os.path.join(ASSETS_DIR, 'logo.png')
+    if os.path.exists(icon_path):
+        app.setWindowIcon(QIcon(icon_path))
+
     # Check and download weights if needed
     if not check_and_download_weights(app):
         sys.exit(1)
 
     window = MainApplicationWindow()
     window.show()
+    close_splash()
 
     sys.exit(app.exec_())
 

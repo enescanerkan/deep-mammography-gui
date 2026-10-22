@@ -1,0 +1,17 @@
+# Build environment for the Windows executable (Python 3.12):
+#   pip install -r requirements-build.txt
+# CPU-only PyTorch: the CUDA build adds about 2.5 GB that the executable would have to
+# unpack at every start, and two images are analysed in a few seconds on the CPU.
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch
+numpy
+pandas
+scipy
+opencv-python
+scikit-image
+Pillow
+pydicom
+matplotlib
+PyQt5
+requests
+pyinstaller

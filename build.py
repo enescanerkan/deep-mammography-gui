@@ -61,8 +61,11 @@ def build_exe():
     )
     
     if result.returncode == 0:
-        exe_path = Path("dist") / "MammogramAnalysis.exe"
-        if exe_path.exists():
+        # one-file build, or the one-folder build (MAMMOGRAM_ONEDIR=1)
+        for exe_path in (Path("dist") / "MammogramAnalysis.exe",
+                         Path("dist") / "MammogramAnalysis" / "MammogramAnalysis.exe"):
+            if not exe_path.exists():
+                continue
             size_mb = exe_path.stat().st_size / (1024 * 1024)
             print("-" * 50)
             print(f"✓ Build successful!")
