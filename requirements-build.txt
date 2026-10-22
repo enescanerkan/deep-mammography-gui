@@ -11,6 +11,10 @@ opencv-python
 scikit-image
 Pillow
 pydicom
+# Decoders for compressed DICOM: JPEG Lossless / JPEG-LS (libjpeg) and JPEG 2000 (openjpeg)
+pylibjpeg
+pylibjpeg-libjpeg
+pylibjpeg-openjpeg
 matplotlib
 PyQt5
 requests

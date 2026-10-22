@@ -17,6 +17,8 @@ import os
 import sys
 from pathlib import Path
 
+from PyInstaller.utils.hooks import collect_submodules, copy_metadata
+
 block_cipher = None
 
 # Project paths
@@ -41,6 +43,18 @@ assets_path = project_root / 'assets'
 if assets_path.exists():
     datas_list.append((str(assets_path), 'assets'))
 
+# Compressed DICOM (JPEG Lossless, JPEG-LS, JPEG 2000): pydicom loads its decoder plugins
+# by module name and pylibjpeg finds its decoders through package metadata (entry points),
+# neither of which PyInstaller follows on its own
+for dist in ('pylibjpeg', 'pylibjpeg-libjpeg', 'pylibjpeg-openjpeg'):
+    try:
+        datas_list += copy_metadata(dist)
+    except Exception:
+        print(f"WARNING: {dist} is not installed; compressed DICOM files will not open")
+dicom_hiddenimports = (collect_submodules('pydicom.pixels')
+                       + collect_submodules('pydicom.pixel_data_handlers')
+                       + ['pylibjpeg', 'libjpeg', 'openjpeg'])
+
 # Analysis configuration
 a = Analysis(
     [str(src_path / 'main.py')],
@@ -64,7 +78,7 @@ a = Analysis(
         'scipy',
         'PIL',
         'requests',
-    ],
+    ] + dicom_hiddenimports,
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[str(project_root / 'pyi_rth_0_torch_dll.py')],  # torch before Qt on Windows
