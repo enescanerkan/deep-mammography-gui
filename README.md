@@ -37,7 +37,7 @@ This desktop application provides automated analysis of mammogram positioning qu
 
 Download the pre-built Windows executable directly from Google Drive:
 
-**[⬇️ Download deep-mammography-gui.exe](https://drive.google.com/file/d/1NjDYhdxcQtbDw1QGIOfMldMnwW8qhSY3/view?usp=drive_link)**
+**[⬇️ Download deep-mammography-gui.exe](https://drive.google.com/file/d/1wOCBpIecmU5FSaWxSmtfrTfTWVyJ1ooh/view?usp=sharing)**
 
 After downloading, place the `.exe` alongside the `weights/` folder and run directly.
 
